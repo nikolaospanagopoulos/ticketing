@@ -8,31 +8,56 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.events.tickets.entities.Event;
 import com.events.tickets.entities.Ticket;
+import com.events.tickets.entities.User;
+import com.events.tickets.exceptions.AlreadyBought;
+import com.events.tickets.exceptions.PaymentException;
 import com.events.tickets.exceptions.ResourceNotFound;
 import com.events.tickets.exceptions.TicketLimitReached;
+import com.events.tickets.exceptions.UserNotFound;
 import com.events.tickets.payload.PaymentDto;
 import com.events.tickets.payload.TicketDto;
 import com.events.tickets.payload.TicketResponsePaginationObject;
+import com.events.tickets.payload.UserDto;
 import com.events.tickets.repositories.EventRepository;
 import com.events.tickets.repositories.TicketRepository;
+import com.events.tickets.repositories.UserRepository;
+import com.events.tickets.services.EmailService;
+import com.events.tickets.services.PaymentService;
 import com.events.tickets.services.TicketService;
+import com.events.tickets.utilis.QRcodeUtil;
+import com.events.tickets.utilis.TicketUtilis;
+import com.stripe.exception.APIConnectionException;
+import com.stripe.exception.APIException;
+import com.stripe.exception.AuthenticationException;
+import com.stripe.exception.CardException;
+import com.stripe.exception.InvalidRequestException;
+import com.stripe.model.Charge;
 
 @Service
 public class TicketServiceImpl implements TicketService {
 
 	private TicketRepository ticketRepository;
 	private EventRepository eventRepository;
+	private UserRepository userRepository;
+	private PaymentService paymentService;
 	private ModelMapper mapper;
+	private EmailService emailService;
 
-	public TicketServiceImpl(TicketRepository ticketRepository, EventRepository eventRepository, ModelMapper mapper) {
+	public TicketServiceImpl(TicketRepository ticketRepository, EventRepository eventRepository, ModelMapper mapper,
+			UserRepository userRepository, EmailService emailService, PaymentService paymentService) {
 		super();
 		this.ticketRepository = ticketRepository;
 		this.eventRepository = eventRepository;
 		this.mapper = mapper;
+		this.userRepository = userRepository;
+		this.emailService = emailService;
+		this.paymentService = paymentService;
 	}
 
 	private Event getEventById(long eventId) {
@@ -142,10 +167,53 @@ public class TicketServiceImpl implements TicketService {
 		ticketRepository.delete(found);
 	}
 
+	private void processTicketPurchase(String userMail, String ticketId) {
+		byte[] qrCode;
+		try {
+			qrCode = QRcodeUtil.generateQrCode(ticketId, 300, 300);
+			emailService.sendTicketEmail(userMail, qrCode);
+		} catch (Exception e) {
+			throw new RuntimeException("something went wrong");
+		}
+	}
+
 	@Override
 	public TicketDto buyTicket(long eventId, long ticketId, PaymentDto paymentDto) {
-		// TODO Auto-generated method stub
-		return null;
+		Event event = getEventById(eventId);
+		Ticket ticket = getTicketByEventId(eventId, ticketId);
+		if (!ticket.getEvent().getId().equals(event.getId())) {
+			throw new ResourceNotFound("Ticket", "id", Long.toString(ticketId));
+		}
+		if (ticket.getTicketUniqueIdentifier() != null) {
+			throw new AlreadyBought(ticketId);
+		}
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String authenticatedUsername = authentication.getName();
+
+		User currentUser = userRepository.findByUsername(authenticatedUsername)
+				.orElseThrow(() -> new UserNotFound("username", authenticatedUsername));
+
+		try {
+			Charge charge = paymentService.chargeNewCard("tok_visa", 50);
+		} catch (AuthenticationException e) {
+			throw new PaymentException(e.getMessage());
+		} catch (InvalidRequestException e) {
+			throw new PaymentException(e.getMessage());
+		} catch (APIConnectionException e) {
+			throw new PaymentException(e.getMessage());
+		} catch (CardException e) {
+			throw new PaymentException(e.getMessage());
+		} catch (APIException e) {
+			throw new PaymentException(e.getMessage());
+		}
+		ticket.setUser(currentUser);
+		String uniqueIdentifier = TicketUtilis.generateUniqueTicketId(eventId, currentUser.getId());
+		ticket.setTicketUniqueIdentifier(uniqueIdentifier);
+		processTicketPurchase(paymentDto.getEmail(), Long.toString(ticketId));
+		ticketRepository.save(ticket);
+		TicketDto boughtTicket = mapper.map(ticket, TicketDto.class);
+		boughtTicket.setBoughtBy(mapper.map(currentUser, UserDto.class));
+		return boughtTicket;
 	}
 
 }

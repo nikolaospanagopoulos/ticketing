@@ -2,6 +2,7 @@ package com.events.tickets.controllers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,17 @@ public class AuthController {
 	public AuthController(AuthService authService) {
 		super();
 		this.authService = authService;
+	}
+
+	@GetMapping("/logout")
+	public ResponseEntity<String> logout(HttpServletResponse response) {
+		Cookie jwtCookie = new Cookie("JWT", null);
+		jwtCookie.setHttpOnly(true);
+		jwtCookie.setPath("/");
+		jwtCookie.setMaxAge(0); // Remove the cookie
+		response.addCookie(jwtCookie);
+
+		return ResponseEntity.ok("Logged out successfully");
 	}
 
 	@PostMapping("/login")

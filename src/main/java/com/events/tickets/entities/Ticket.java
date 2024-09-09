@@ -166,6 +166,14 @@ public class Ticket {
 		this.ticketType = ticketType;
 	}
 
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
 	@Override
 	public String toString() {
 		return "Ticket [id=" + id + ", title=" + title + ", description=" + description + ", price=" + price

@@ -15,10 +15,11 @@ public class TicketDto implements DataResponse {
 	private LocalDate createdDate;
 	private String ticketUniqueIdentifier;
 	private String ticketType;
+	private UserDto boughtBy;
 
 	public TicketDto(Long id, String title, String description, double price, String status, String seatNumber,
 			String section, String transactionId, LocalDate dateOfPurchase, LocalDate createdDate,
-			String ticketUniqueIdentifier, String ticketType) {
+			String ticketUniqueIdentifier, String ticketType, UserDto boughtBy) {
 		super();
 		this.id = id;
 		this.title = title;
@@ -32,6 +33,7 @@ public class TicketDto implements DataResponse {
 		this.createdDate = createdDate;
 		this.ticketUniqueIdentifier = ticketUniqueIdentifier;
 		this.ticketType = ticketType;
+		this.boughtBy = boughtBy;
 	}
 
 	public String getTicketType() {
@@ -132,6 +134,14 @@ public class TicketDto implements DataResponse {
 
 	public void setTicketUniqueIdentifier(String ticketUniqueIdentifier) {
 		this.ticketUniqueIdentifier = ticketUniqueIdentifier;
+	}
+
+	public UserDto getBoughtBy() {
+		return boughtBy;
+	}
+
+	public void setBoughtBy(UserDto boughtBy) {
+		this.boughtBy = boughtBy;
 	}
 
 }

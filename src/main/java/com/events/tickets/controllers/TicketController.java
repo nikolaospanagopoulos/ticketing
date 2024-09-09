@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.events.tickets.payload.ApiResponse;
+import com.events.tickets.payload.PaymentDto;
 import com.events.tickets.payload.TicketDto;
 import com.events.tickets.services.TicketService;
 import com.events.tickets.utilis.ApplicationConstants;
@@ -26,6 +27,13 @@ public class TicketController {
 	public TicketController(TicketService ticketService) {
 		super();
 		this.ticketService = ticketService;
+	}
+
+	@PutMapping("/events/{eventId}/tickets/{ticketId}/buy")
+	public ResponseEntity<ApiResponse> buyTicket(@RequestBody PaymentDto paymentDto,
+			@PathVariable(value = "eventId") long eventId, @PathVariable(value = "ticketId") long ticketId) {
+		ApiResponse apiResponse = new ApiResponse(ticketService.buyTicket(eventId, ticketId, paymentDto));
+		return new ResponseEntity<>(apiResponse, HttpStatus.OK);
 	}
 
 	@GetMapping("/events/{eventId}/tickets/{ticketId}")
@@ -41,6 +49,7 @@ public class TicketController {
 		ApiResponse apiResponse = new ApiResponse(this.ticketService.createTicket(eventId, ticketDto));
 		return new ResponseEntity<>(apiResponse, HttpStatus.CREATED);
 	}
+
 	@PreAuthorize("hasRole('ADMIN')")
 	@PutMapping("/events/{eventId}/tickets/{ticketId}")
 	public ResponseEntity<ApiResponse> updateTicket(@RequestBody TicketDto toUpdate,

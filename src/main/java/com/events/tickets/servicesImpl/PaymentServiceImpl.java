@@ -20,7 +20,7 @@ public class PaymentServiceImpl implements PaymentService{
 			APIConnectionException, CardException, APIException {
 		// TODO Auto-generated method stub
 		Map<String,Object>chargeParams = new HashMap<>();
-		chargeParams.put("ammount", (int)(amount * 100));
+		chargeParams.put("amount", (int)(amount * 100));
 		chargeParams.put("currency", "USD");
 		chargeParams.put("source", token);
 		chargeParams.put("description","Charge for a ticket");
