@@ -18,8 +18,14 @@ import com.events.tickets.payload.EventDto;
 import com.events.tickets.services.EventService;
 import com.events.tickets.utilis.ApplicationConstants;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/events")
+@Tag(name = "CRUD REST for Events")
+
 public class EventController {
 	private EventService eventService;
 
@@ -27,6 +33,8 @@ public class EventController {
 		this.eventService = eventService;
 	}
 
+	@Operation(summary = "Create Event")
+	@SecurityRequirement(name = "Bearer Auth")
 	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping
 	public ResponseEntity<EventDto> createEvent(@RequestBody EventDto eventDto) {
@@ -34,6 +42,7 @@ public class EventController {
 		return new ResponseEntity<>(created, HttpStatus.CREATED);
 	}
 
+	@Operation(summary = "Get All Events")
 	@GetMapping
 	public ResponseEntity<ApiResponse> getAllEvents(
 			@RequestParam(value = "pageNo", defaultValue = ApplicationConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
@@ -44,12 +53,15 @@ public class EventController {
 		return new ResponseEntity<ApiResponse>(apiResponse, HttpStatus.OK);
 	}
 
+	@Operation(summary = "Get Event By Id")
 	@GetMapping("/{id}")
 	public ResponseEntity<ApiResponse> getEventById(@PathVariable(name = "id") long id) {
 		ApiResponse apiResponse = new ApiResponse(this.eventService.getEventById(id));
 		return new ResponseEntity<>(apiResponse, HttpStatus.OK);
 	}
 
+	@Operation(summary = "Update Event By Id")
+	@SecurityRequirement(name = "Bearer Auth")
 	@PreAuthorize("hasRole('ADMIN')")
 	@PutMapping("/{id}")
 	public ResponseEntity<ApiResponse> updateEvent(@RequestBody EventDto toUpdate, @PathVariable(name = "id") long id) {
@@ -57,6 +69,8 @@ public class EventController {
 		return new ResponseEntity<>(apiResponse, HttpStatus.OK);
 	}
 
+	@SecurityRequirement(name = "Bearer Auth")
+	@Operation(summary = "Delete Event By Id")
 	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ApiResponse> deleteEvent(@PathVariable(name = "id") long id) {
