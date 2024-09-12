@@ -37,7 +37,6 @@ import com.stripe.exception.APIException;
 import com.stripe.exception.AuthenticationException;
 import com.stripe.exception.CardException;
 import com.stripe.exception.InvalidRequestException;
-import com.stripe.model.Charge;
 
 @Service
 public class TicketServiceImpl implements TicketService {
@@ -194,7 +193,7 @@ public class TicketServiceImpl implements TicketService {
 				.orElseThrow(() -> new UserNotFound("username", authenticatedUsername));
 
 		try {
-			Charge charge = paymentService.chargeNewCard("tok_visa", 50);
+			paymentService.chargeNewCard("tok_visa", 50);
 		} catch (AuthenticationException e) {
 			throw new PaymentException(e.getMessage());
 		} catch (InvalidRequestException e) {

@@ -38,7 +38,7 @@ This is a **Spring Boot** based API for managing events and ticket bookings. It 
 git clone https://github.com/your-repo/ticketing-api.git
 cd ticketing-api
 ```
-#### 2. Replace the missing information from application-docker.properties file with email server information and stripe api key
+#### 2. Replace the missing information from application-docker.properties file with email server information and stripe api key and replace application.properties with it
 #### 3. Clean the Project
 ```bash
 mvn clean

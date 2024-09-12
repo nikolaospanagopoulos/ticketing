@@ -1,7 +1,6 @@
 package com.events.tickets.servicesImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -19,7 +18,6 @@ public class EmailServiceImpl implements EmailService {
 
 	@Override
 	public void sendTicketEmail(String to, byte[] qrCode) throws MessagingException {
-		// TODO Auto-generated method stub
 		MimeMessage mimeMessage = javaMailSender.createMimeMessage();
 		MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
 		helper.setTo(to);

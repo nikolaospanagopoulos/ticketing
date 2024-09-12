@@ -18,7 +18,6 @@ public class PaymentServiceImpl implements PaymentService{
 	@Override
 	public Charge chargeNewCard(String token, double amount) throws AuthenticationException, InvalidRequestException,
 			APIConnectionException, CardException, APIException {
-		// TODO Auto-generated method stub
 		Map<String,Object>chargeParams = new HashMap<>();
 		chargeParams.put("amount", (int)(amount * 100));
 		chargeParams.put("currency", "USD");
