@@ -1,7 +1,11 @@
 package com.events.tickets.controllers;
 
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.events.tickets.payload.JwtResponseDto;
 import com.events.tickets.payload.LoginDto;
 import com.events.tickets.payload.RegisterDto;
+import com.events.tickets.payload.RoleDto;
+import com.events.tickets.payload.UserDetailsDto;
 import com.events.tickets.services.AuthService;
 
 import jakarta.servlet.http.Cookie;
@@ -26,6 +32,18 @@ public class AuthController {
 		this.authService = authService;
 	}
 
+	@GetMapping("/user")
+	public ResponseEntity<UserDetailsDto>getUserInfo(Authentication authentication){
+		String username = authentication.getName();
+		UserDetailsDto userDetails = new UserDetailsDto();
+		userDetails.setUsername(username);
+		userDetails.setRoles(authentication.getAuthorities().stream().map(a->{
+		   RoleDto role = new RoleDto();
+		   role.setName(a.getAuthority());
+		   return role;
+		 }).collect(Collectors.toSet()));
+		return new ResponseEntity<>(userDetails,HttpStatus.OK);
+	}
 	@GetMapping("/logout")
 	public ResponseEntity<String> logout(HttpServletResponse response) {
 		Cookie jwtCookie = new Cookie("JWT", null);
